@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FunPlayer WebComponent - Exemple d'utilisation</title>
+  <style>
+    /* Styles de la page hôte pour contraste */
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      margin: 0;
+      padding: 20px;
+      background: #f5f5f5;
+      color: #333;
+    }
+    
+    .container {
+      max-width: 1000px;
+      margin: 0 auto;
+      background: white;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+    
+    .test-section {
+      margin: 30px 0;
+      padding: 20px;
+      border: 2px dashed #ccc;
+      border-radius: 8px;
+      background: #fafafa;
+    }
+    
+    .test-section h3 {
+      margin-top: 0;
+      color: #ff4b4b;
+      border-bottom: 2px solid #ff4b4b;
+      padding-bottom: 10px;
+    }
+    
+    .controls {
+      margin: 15px 0;
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    
+    button {
+      padding: 8px 16px;
+      border: 1px solid #ff4b4b;
+      background: white;
+      color: #ff4b4b;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    
+    button:hover {
+      background: #ff4b4b;
+      color: white;
+    }
+    
+    fun-player {
+      display: block;
+      margin: 20px 0;
+    }
+    
+    /* Debug output simple */
+    .debug-output {
+      background: #2d3748;
+      color: #e2e8f0;
+      padding: 15px;
+      border-radius: 5px;
+      font-family: 'Courier New', monospace;
+      font-size: 12px;
+      margin: 15px 0;
+      white-space: pre-wrap;
+      max-height: 150px;
+      overflow-y: auto;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🎮 FunPlayer WebComponent - Exemple d'utilisation</h1>
+
+    <!-- ========================================================================== -->
+    <!-- TEST 1: WebComponent basique -->
+    <!-- ========================================================================== -->
+    <div class="test-section">
+      <h3>1. Utilisation basique</h3>
+      <p>WebComponent avec une playlist simple et thème par défaut</p>
+      
+      <fun-player id="player1"></fun-player>
+      
+      <div class="controls">
+        <button onclick="loadBasicTest('player1')">▶️ Charger video simple</button>
+        <button onclick="loadWithFunscript('player1')">🎯 Charger video + funscript</button>
+        <button onclick="debugPlayer('player1')">🔍 Debug Player</button>
+      </div>
+    </div>
+
+    <!-- ========================================================================== -->
+    <!-- TEST 2: WebComponent avec thème custom -->
+    <!-- ========================================================================== -->
+    <div class="test-section">
+      <h3>2. Utilisation avec thème personnalisé</h3>
+      <p>WebComponent avec thème sombre personnalisé</p>
+      
+      <fun-player 
+        id="player2"
+        theme='{
+          "base": "dark",
+          "primaryColor": "#00ff88",
+          "backgroundColor": "#1a1a1a",
+          "textColor": "#ffffff",
+          "borderColor": "#444444"
+        }'
+      ></fun-player>
+      
+      <div class="controls">
+        <button onclick="loadBasicTest('player2')">▶️ Charger video simple</button>
+        <button onclick="loadWithFunscript('player2')">🎯 Charger video + funscript</button>
+        <button onclick="debugPlayer('player2')">🔍 Debug Player</button>
+        <button onclick="changeTheme('player2')">🎨 Changer le thème</button>
+      </div>
+    </div>
+
+    <!-- ========================================================================== -->
+    <!-- TEST 3: Création dynamique -->
+    <!-- ========================================================================== -->
+    <div class="test-section">
+      <h3>3. Création dynamique via JavaScript</h3>
+      <p>Créer et supprimer un WebComponent dynamiquement</p>
+      
+      <div id="dynamic-container" style="min-height: 300px; background: #f0f0f0; border: 2px dashed #ccc; border-radius: 8px; padding: 20px;">
+        <p style="text-align: center; color: #666;">Zone pour le player dynamique</p>
+      </div>
+      
+      <div class="controls">
+        <button onclick="createDynamicPlayer()">➕ Créer Player avec funscript</button>
+        <button onclick="removeDynamicPlayer()">❌ Supprimer Player</button>
+      </div>
+    </div>
+
+    <!-- ========================================================================== -->
+    <!-- DEBUG SIMPLIFIÉ -->
+    <!-- ========================================================================== -->
+    <div class="test-section">
+      <h3>4. Debug global</h3>
+      <div class="controls">
+        <button onclick="globalDebug()">🔍 Debug Global</button>
+        <button onclick="clearDebug()">🧹 Effacer</button>
+      </div>
+      
+      <div id="debug-output" class="debug-output">
+        📊 Debug output...
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Point d'entrée pour le Web Component -->
+  <script type="module" src="/src/embed.js"></script>
+  
+  <script>
+    // ============================================================================
+    // GÉNÉRATION DE FUNSCRIPT DE TEST
+    // ============================================================================
+    
+    function generateTestFunscript(durationMs = 120000, periodMs = 1000, sampleRateMs = 50) {
+      const actions = [];
+      
+      for (let t = 0; t <= durationMs; t += sampleRateMs) {
+        // Sinusoïde de 5% à 95% avec période de 1s
+        const pos = Math.round(50 + 45 * Math.sin(2 * Math.PI * t / periodMs));
+        actions.push({
+          at: t,
+          pos: Math.max(5, Math.min(95, pos)) // Clamp entre 5 et 95
+        });
+      }
+      
+      return {
+        version: "1.0",
+        inverted: false,
+        range: 90,
+        actions: actions
+      };
+    }
+    
+    function createPlaylistWithFunscript(videoUrl, videoName, funscript = null) {
+      const playlist = [{
+        sources: [{ src: videoUrl, type: "video/mp4" }],
+        name: videoName
+      }];
+      
+      if (funscript) {
+        playlist[0].funscript = funscript;
+      }
+      
+      return playlist;
+    }
+
+    // ============================================================================
+    // FONCTIONS DE CHARGEMENT DE CONTENU
+    // ============================================================================
+    
+    function loadBasicTest(playerId) {
+      const player = document.getElementById(playerId);
+      if (!player) {
+        log(`❌ Player ${playerId} not found`);
+        return;
+      }
+      
+      const playlist = createPlaylistWithFunscript(
+        "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4",
+        "Big Buck Bunny"
+      );
+      
+      player.setAttribute('playlist', JSON.stringify(playlist));
+      log(`▶️ Basic video loaded in ${playerId}`);
+    }
+    
+    function loadWithFunscript(playerId) {
+      const player = document.getElementById(playerId);
+      if (!player) {
+        log(`❌ Player ${playerId} not found`);
+        return;
+      }
+      
+      const funscript = generateTestFunscript(120000, 1000, 50); // 2min, période 1s
+      const playlist = createPlaylistWithFunscript(
+        "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4",
+        "Elephants Dream + Funscript",
+        funscript
+      );
+      
+      player.setAttribute('playlist', JSON.stringify(playlist));
+      log(`🎯 Video with funscript loaded in ${playerId} (${funscript.actions.length} actions)`);
+    }
+
+    // ============================================================================
+    // FONCTIONS DE DEBUG SIMPLIFIÉES
+    // ============================================================================
+    
+    let debugElement = null;
+    
+    function getDebugElement() {
+      if (!debugElement) {
+        debugElement = document.getElementById('debug-output');
+      }
+      return debugElement;
+    }
+    
+    function log(message) {
+      const debug = getDebugElement();
+      const timestamp = new Date().toLocaleTimeString();
+      debug.textContent += `\n[${timestamp}] ${message}`;
+      debug.scrollTop = debug.scrollHeight;
+    }
+    
+    function clearDebug() {
+      const debug = getDebugElement();
+      debug.textContent = '📊 Debug cleared...\n';
+    }
+    
+    // ============================================================================
+    // FONCTIONS DE TEST
+    // ============================================================================
+    
+    function debugPlayer(playerId) {
+      const player = document.getElementById(playerId);
+      if (!player) {
+        log(`❌ Player ${playerId} not found`);
+        return;
+      }
+      
+      log(`🔍 Player: ${playerId}`);
+      log(`- Connected: ${player.isConnected}`);
+      log(`- Playlist: ${player.getAttribute('playlist') ? 'Present' : 'None'}`);
+      log(`- Theme: ${player.getAttribute('theme') || 'Default'}`);
+    }
+    
+    function changeTheme(playerId) {
+      const player = document.getElementById(playerId);
+      if (!player) {
+        log(`❌ Player ${playerId} not found`);
+        return;
+      }
+      
+      // Alterner entre thème sombre et clair
+      const currentTheme = player.getAttribute('theme');
+      const isLight = !currentTheme || currentTheme.includes('"base":"light"');
+      
+      const newTheme = isLight ? 
+        '{"base":"dark","primaryColor":"#ff6b6b","backgroundColor":"#2d3748","textColor":"#ffffff"}' :
+        '{"base":"light","primaryColor":"#4299e1","backgroundColor":"#ffffff","textColor":"#2d3748"}';
+      
+      player.setAttribute('theme', newTheme);
+      log(`🎨 Theme changed for ${playerId}`);
+    }
+    
+    function createDynamicPlayer() {
+      const container = document.getElementById('dynamic-container');
+      
+      // Supprimer l'ancien s'il existe
+      const existing = container.querySelector('fun-player');
+      if (existing) {
+        existing.remove();
+      }
+      
+      // Créer le nouveau player avec funscript
+      const player = document.createElement('fun-player');
+      player.id = 'dynamic-player';
+      
+      const funscript = generateTestFunscript(120000, 800, 40); // Période plus rapide: 0.8s
+      const playlist = createPlaylistWithFunscript(
+        "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/Sintel.mp4",
+        "Sintel (Dynamique + Funscript)",
+        funscript
+      );
+      
+      player.setAttribute('playlist', JSON.stringify(playlist));
+      player.setAttribute('theme', '{"base":"dark","primaryColor":"#9f7aea"}');
+      
+      container.innerHTML = '';
+      container.appendChild(player);
+      
+      log(`➕ Dynamic player created with funscript (${funscript.actions.length} actions)`);
+    }
+    
+    function removeDynamicPlayer() {
+      const container = document.getElementById('dynamic-container');
+      const player = container.querySelector('fun-player');
+      
+      if (player) {
+        player.remove();
+        container.innerHTML = '<p style="text-align: center; color: #666;">Zone pour le player dynamique</p>';
+        log('❌ Dynamic player removed');
+      } else {
+        log('⚠️ No dynamic player to remove');
+      }
+    }
+    
+    function globalDebug() {
+      log('🔍 === DEBUG GLOBAL ===');
+      
+      // Lister tous les players
+      const players = document.querySelectorAll('fun-player');
+      log(`📋 Found ${players.length} player(s)`);
+      
+      players.forEach((player, index) => {
+        log(`  [${index}] ID: ${player.id || 'no-id'}`);
+      });
+      
+      // État du WebComponent
+      log(`🌐 Custom element defined: ${!!customElements.get('fun-player')}`);
+      
+      // État général
+      log(`📊 Document ready: ${document.readyState}`);
+      log(`🔗 Scripts loaded: ${document.scripts.length}`);
+    }
+    
+  </script>
+</body>
+</html>

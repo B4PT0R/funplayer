@@ -1,0 +1,557 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FunPlayer Embed - Playground</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 20px;
+      background: #f0f0f0;
+    }
+    
+    .container {
+      max-width: 1000px;
+      margin: 0 auto;
+      background: white;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+    
+    .section {
+      margin: 30px 0;
+      padding: 20px;
+      border: 2px dashed #ddd;
+      border-radius: 8px;
+      background: #fafafa;
+    }
+    
+    .section h3 {
+      margin-top: 0;
+      color: #007bff;
+      border-bottom: 2px solid #007bff;
+      padding-bottom: 10px;
+    }
+    
+    fun-player {
+      display: block;
+      margin: 20px 0;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+    }
+    
+    .controls {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin: 15px 0;
+    }
+    
+    button {
+      padding: 10px 15px;
+      border: 1px solid #007bff;
+      background: white;
+      color: #007bff;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    
+    button:hover {
+      background: #007bff;
+      color: white;
+    }
+    
+    button.active {
+      background: #007bff;
+      color: white;
+    }
+    
+    /* Theme Editor */
+    .theme-editor {
+      background: #f8f9fa;
+      padding: 20px;
+      border-radius: 6px;
+      margin: 15px 0;
+    }
+
+    .theme-controls-row {
+      display: flex;
+      gap: 20px;
+      align-items: flex-start;
+      flex-wrap: wrap;
+      justify-content: space-between;
+    }
+
+    .theme-control {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      min-width: 140px;
+      flex: 1;
+    }
+
+    .theme-control label {
+      font-weight: bold;
+      font-size: 11px;
+      color: #666;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .color-input-group {
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+    }
+
+    .theme-control input[type="color"] {
+      width: 100%;
+      height: 50px;
+      border: 2px solid #ddd;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: border-color 0.2s;
+    }
+
+    .theme-control input[type="color"]:hover {
+      border-color: #007bff;
+    }
+
+    .theme-control input[type="text"] {
+      width: 100%;
+      padding: 8px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      font-family: 'Courier New', monospace;
+      font-size: 12px;
+      text-align: center;
+      background: white;
+    }
+
+    .theme-control input[type="text"]:focus {
+      outline: none;
+      border-color: #007bff;
+      box-shadow: 0 0 0 2px rgba(0,123,255,0.25);
+    }
+    
+    .theme-presets {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin: 10px 0;
+    }
+    
+    .preset-btn {
+      padding: 5px 10px;
+      font-size: 12px;
+    }
+    
+    .debug-panel {
+      background: #2d3748;
+      color: #e2e8f0;
+      padding: 15px;
+      border-radius: 5px;
+      font-family: 'Courier New', monospace;
+      font-size: 12px;
+      margin: 15px 0;
+      white-space: pre-wrap;
+      max-height: 200px;
+      overflow-y: auto;
+      display: none;
+    }
+    
+    .live-theme {
+      background: #e8f5e8;
+      border: 2px solid #4caf50;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🎮 FunPlayer Embed - Playground</h1>
+    <p>Test complet du Web Component avec playlists et éditeur de thème en temps réel !</p>
+
+    <!-- ========================================================================== -->
+    <!-- TEST 1: Player simple -->
+    <!-- ========================================================================== -->
+    <div class="section">
+      <h3>1. Player basique</h3>
+      <p>Test avec une seule vidéo</p>
+      
+      <fun-player id="player-basic"></fun-player>
+      
+      <div class="controls">
+        <button onclick="loadSingleVideo()">📺 Charger vidéo simple</button>
+        <button onclick="loadSingleWithFunscript()">🎯 Vidéo + funscript</button>
+      </div>
+    </div>
+
+    <!-- ========================================================================== -->
+    <!-- TEST 2: Playlist complète -->
+    <!-- ========================================================================== -->
+    <div class="section">
+      <h3>2. Playlist complète</h3>
+      <p>Test avec playlist de 3 vidéos + navigation</p>
+      
+      <fun-player id="player-playlist"></fun-player>
+      
+      <div class="controls">
+        <button onclick="loadPlaylist()">🎬 Charger playlist (3 vidéos)</button>
+        <button onclick="loadPlaylistWithFunscripts()">🎯 Playlist + funscripts</button>
+      </div>
+    </div>
+
+    <!-- ========================================================================== -->
+    <!-- TEST 3: Éditeur de thème en temps réel -->
+    <!-- ========================================================================== -->
+    <div class="section live-theme">
+      <h3>3. 🎨 Éditeur de thème en temps réel</h3>
+      <p>Modifie les couleurs et vois les changements instantanément !</p>
+      
+      <div class="theme-presets">
+        <button class="preset-btn" onclick="applyPreset('default')">🔵 Défaut</button>
+        <button class="preset-btn" onclick="applyPreset('dark')">🌙 Sombre</button>
+        <button class="preset-btn" onclick="applyPreset('neon')">✨ Néon</button>
+        <button class="preset-btn" onclick="applyPreset('forest')">🌲 Forêt</button>
+        <button class="preset-btn" onclick="applyPreset('sunset')">🌅 Sunset</button>
+      </div>
+      
+      <div class="theme-editor">
+        <div class="theme-controls-row">
+          <div class="theme-control">
+            <label>Couleur primaire</label>
+            <div class="color-input-group">
+              <input type="color" id="primaryColor" value="#FF4B4B" onchange="updateTheme()" oninput="syncColorInput('primaryColor')">
+              <input type="text" id="primaryColorText" value="#FF4B4B" onchange="syncColorPicker('primaryColor')" placeholder="#FF4B4B">
+            </div>
+          </div>
+          
+          <div class="theme-control">
+            <label>Arrière-plan principal</label>
+            <div class="color-input-group">
+              <input type="color" id="backgroundColor" value="#FFFFFF" onchange="updateTheme()" oninput="syncColorInput('backgroundColor')">
+              <input type="text" id="backgroundColorText" value="#FFFFFF" onchange="syncColorPicker('backgroundColor')" placeholder="#FFFFFF">
+            </div>
+          </div>
+          
+          <div class="theme-control">
+            <label>Arrière-plan secondaire</label>
+            <div class="color-input-group">
+              <input type="color" id="secondaryBackgroundColor" value="#F0F2F6" onchange="updateTheme()" oninput="syncColorInput('secondaryBackgroundColor')">
+              <input type="text" id="secondaryBackgroundColorText" value="#F0F2F6" onchange="syncColorPicker('secondaryBackgroundColor')" placeholder="#F0F2F6">
+            </div>
+          </div>
+          
+          <div class="theme-control">
+            <label>Texte</label>
+            <div class="color-input-group">
+              <input type="color" id="textColor" value="#262730" onchange="updateTheme()" oninput="syncColorInput('textColor')">
+              <input type="text" id="textColorText" value="#262730" onchange="syncColorPicker('textColor')" placeholder="#262730">
+            </div>
+          </div>
+          
+          <div class="theme-control">
+            <label>Bordures</label>
+            <div class="color-input-group">
+              <input type="color" id="borderColor" value="#E6EBF5" onchange="updateTheme()" oninput="syncColorInput('borderColor')">
+              <input type="text" id="borderColorText" value="#E6EBF5" onchange="syncColorPicker('borderColor')" placeholder="#E6EBF5">
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <fun-player id="player-theme"></fun-player>
+      
+      <div class="controls">
+        <button onclick="loadThemeTest()">🎨 Charger test thème</button>
+        <button onclick="randomTheme()">🎲 Thème aléatoire</button>
+        <button onclick="exportTheme()">📋 Exporter thème</button>
+      </div>
+    </div>
+
+    <!-- ========================================================================== -->
+    <!-- DEBUG -->
+    <!-- ========================================================================== -->
+    <div class="section">
+      <h3>4. Debug & Info</h3>
+      <div class="controls">
+        <button onclick="toggleDebug()">🔍 Toggle Debug</button>
+        <button onclick="testAllPlayers()">⚡ Test tous les players</button>
+        <button onclick="clearDebug()">🧹 Clear</button>
+      </div>
+      
+      <div id="debug-panel" class="debug-panel">
+        📊 Debug output...
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Build embed -->
+  <script src="./dist-embed/funplayer-embed.js"></script>
+  
+  <script>
+    // ============================================================================
+    // GÉNÉRATION DE FUNSCRIPTS
+    // ============================================================================
+    
+    function generateTestFunscript(durationMs = 120000, periodMs = 1000) {
+      const actions = [];
+      for (let t = 0; t <= durationMs; t += 50) {
+        const pos = Math.round(50 + 45 * Math.sin(2 * Math.PI * t / periodMs));
+        actions.push({ at: t, pos: Math.max(5, Math.min(95, pos)) });
+      }
+      return { version: "1.0", inverted: false, range: 90, actions };
+    }
+    
+    // ============================================================================
+    // CHARGEMENT DE CONTENU
+    // ============================================================================
+    
+    function loadSingleVideo() {
+      const player = document.getElementById('player-basic');
+      const playlist = [{
+        sources: [{ src: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4", type: "video/mp4" }],
+        name: "Big Buck Bunny"
+      }];
+      player.setAttribute('playlist', JSON.stringify(playlist));
+      log('📺 Single video loaded');
+    }
+    
+    function loadSingleWithFunscript() {
+      const player = document.getElementById('player-basic');
+      const funscript = generateTestFunscript(120000, 1200);
+      const playlist = [{
+        sources: [{ src: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4", type: "video/mp4" }],
+        name: "Elephants Dream + Funscript",
+        funscript: funscript
+      }];
+      player.setAttribute('playlist', JSON.stringify(playlist));
+      log(`🎯 Single video + funscript loaded (${funscript.actions.length} actions)`);
+    }
+    
+    function loadPlaylist() {
+      const player = document.getElementById('player-playlist');
+      const playlist = [
+        {
+          sources: [{ src: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4", type: "video/mp4" }],
+          name: "Big Buck Bunny"
+        },
+        {
+          sources: [{ src: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4", type: "video/mp4" }],
+          name: "Elephants Dream"
+        },
+        {
+          sources: [{ src: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/Sintel.mp4", type: "video/mp4" }],
+          name: "Sintel"
+        }
+      ];
+      player.setAttribute('playlist', JSON.stringify(playlist));
+      log('🎬 Playlist loaded (3 videos)');
+    }
+    
+    function loadPlaylistWithFunscripts() {
+      const player = document.getElementById('player-playlist');
+      const playlist = [
+        {
+          sources: [{ src: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4", type: "video/mp4" }],
+          name: "Big Buck Bunny + Funscript",
+          funscript: generateTestFunscript(120000, 1000)
+        },
+        {
+          sources: [{ src: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4", type: "video/mp4" }],
+          name: "Elephants Dream + Funscript",
+          funscript: generateTestFunscript(120000, 800)
+        },
+        {
+          sources: [{ src: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/Sintel.mp4", type: "video/mp4" }],
+          name: "Sintel + Funscript",
+          funscript: generateTestFunscript(120000, 1500)
+        }
+      ];
+      player.setAttribute('playlist', JSON.stringify(playlist));
+      log('🎯 Playlist + funscripts loaded (3 videos with haptics)');
+    }
+    
+    // ============================================================================
+    // SYNCHRONISATION COLOR PICKER ↔ TEXT INPUT
+    // ============================================================================
+
+    function syncColorInput(colorId) {
+      const colorPicker = document.getElementById(colorId);
+      const textInput = document.getElementById(colorId + 'Text');
+      textInput.value = colorPicker.value.toUpperCase();
+    }
+
+    function syncColorPicker(colorId) {
+      const textInput = document.getElementById(colorId + 'Text');
+      const colorPicker = document.getElementById(colorId);
+      
+      // Valider le format hex
+      const hexRegex = /^#[0-9A-Fa-f]{6}$/;
+      if (hexRegex.test(textInput.value)) {
+        colorPicker.value = textInput.value;
+        updateTheme();
+      } else {
+        // Reset au format valide si invalide
+        textInput.value = colorPicker.value.toUpperCase();
+      }
+    }
+
+    // ============================================================================
+    // ÉDITEUR DE THÈME
+    // ============================================================================
+    
+    const presets = {
+      default: { 
+        primaryColor: '#FF4B4B', 
+        backgroundColor: '#FFFFFF', 
+        secondaryBackgroundColor: '#F0F2F6',
+        textColor: '#262730', 
+        borderColor: '#E6EBF5' 
+      },
+      dark: { 
+        primaryColor: '#00FF88', 
+        backgroundColor: '#0E1117', 
+        secondaryBackgroundColor: '#262730',
+        textColor: '#FAFAFA', 
+        borderColor: '#464954' 
+      },
+      neon: { 
+        primaryColor: '#ff6b6b', 
+        backgroundColor: '#0d1117', 
+        secondaryBackgroundColor: '#1a1a2e',
+        textColor: '#00ffff', 
+        borderColor: '#ff00ff' 
+      },
+      forest: { 
+        primaryColor: '#4caf50', 
+        backgroundColor: '#f1f8e9', 
+        secondaryBackgroundColor: '#e8f5e8',
+        textColor: '#2e7d32', 
+        borderColor: '#81c784' 
+      },
+      sunset: { 
+        primaryColor: '#ff9800', 
+        backgroundColor: '#fff8e1', 
+        secondaryBackgroundColor: '#fff3e0',
+        textColor: '#e65100', 
+        borderColor: '#ffb74d' 
+      }
+    };
+    
+    function applyPreset(presetName) {
+      const preset = presets[presetName];
+      if (!preset) return;
+      
+      // Mettre à jour les color pickers
+      document.getElementById('primaryColor').value = preset.primaryColor;
+      document.getElementById('backgroundColor').value = preset.backgroundColor;
+      document.getElementById('secondaryBackgroundColor').value = preset.secondaryBackgroundColor;
+      document.getElementById('textColor').value = preset.textColor;
+      document.getElementById('borderColor').value = preset.borderColor;
+      
+      // Mettre à jour les text inputs
+      document.getElementById('primaryColorText').value = preset.primaryColor;
+      document.getElementById('backgroundColorText').value = preset.backgroundColor;
+      document.getElementById('secondaryBackgroundColorText').value = preset.secondaryBackgroundColor;
+      document.getElementById('textColorText').value = preset.textColor;
+      document.getElementById('borderColorText').value = preset.borderColor;
+      
+      updateTheme();
+      log(`🎨 Applied preset: ${presetName}`);
+    }
+
+    function updateTheme() {
+      const theme = {
+        base: "custom",
+        primaryColor: document.getElementById('primaryColor').value,
+        backgroundColor: document.getElementById('backgroundColor').value,
+        secondaryBackgroundColor: document.getElementById('secondaryBackgroundColor').value,
+        textColor: document.getElementById('textColor').value,
+        borderColor: document.getElementById('borderColor').value
+      };
+      
+      const player = document.getElementById('player-theme');
+      player.setAttribute('theme', JSON.stringify(theme));
+    }
+
+    function randomTheme() {
+      const randomColor = () => '#' + Math.floor(Math.random()*16777215).toString(16).padStart(6, '0').toUpperCase();
+      
+      const colors = {
+        primaryColor: randomColor(),
+        backgroundColor: randomColor(),
+        secondaryBackgroundColor: randomColor(),
+        textColor: randomColor(),
+        borderColor: randomColor()
+      };
+      
+      // Appliquer aux deux types d'inputs
+      Object.keys(colors).forEach(key => {
+        document.getElementById(key).value = colors[key];
+        document.getElementById(key + 'Text').value = colors[key];
+      });
+      
+      updateTheme();
+      log('🎲 Random theme applied');
+    }
+
+    function exportTheme() {
+      const theme = {
+        primaryColor: document.getElementById('primaryColor').value,
+        backgroundColor: document.getElementById('backgroundColor').value,
+        secondaryBackgroundColor: document.getElementById('secondaryBackgroundColor').value,
+        textColor: document.getElementById('textColor').value,
+        borderColor: document.getElementById('borderColor').value
+      };
+      
+      const themeJson = JSON.stringify(theme, null, 2);
+      navigator.clipboard.writeText(themeJson).then(() => {
+        log('📋 Theme copied to clipboard:\n' + themeJson);
+      });
+    }
+    
+    // ============================================================================
+    // DEBUG
+    // ============================================================================
+    
+    function log(message) {
+      const debug = document.getElementById('debug-panel');
+      const time = new Date().toLocaleTimeString();
+      debug.textContent += `\n[${time}] ${message}`;
+      debug.scrollTop = debug.scrollHeight;
+    }
+    
+    function toggleDebug() {
+      const debug = document.getElementById('debug-panel');
+      debug.style.display = debug.style.display === 'none' ? 'block' : 'none';
+    }
+    
+    function clearDebug() {
+      document.getElementById('debug-panel').textContent = '📊 Debug cleared...\n';
+    }
+    
+    function testAllPlayers() {
+      const players = document.querySelectorAll('fun-player');
+      log(`🔍 Found ${players.length} players:`);
+      players.forEach((player, i) => {
+        log(`  [${i}] ID: ${player.id}, Connected: ${player.isConnected}`);
+      });
+    }
+    
+    // ============================================================================
+    // INIT
+    // ============================================================================
+    
+    window.addEventListener('load', () => {
+      log('🚀 FunPlayer Playground loaded!');
+      log('💡 Try the different tests and play with the theme editor!');
+    });
+    
+  </script>
+</body>
+</html>

@@ -1,0 +1,1295 @@
+/* ============================================================================
+   FUNPLAYER STYLE SHEAT - SCSS
+   ============================================================================ */
+
+/* #region RESET */
+
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+html, body {
+  margin: 0;
+  padding: 0;
+  font-family: var(--fp-font-family);
+  color: var(--fp-text-color);
+  background: var(--fp-background-color);
+}
+
+button, input, select, textarea {
+  margin: 0;
+  padding: 0;
+  border: none;
+  background: none;
+  font-family: inherit;
+  font-size: inherit;
+  color: inherit;
+}
+
+button { cursor: pointer; }
+a { color: inherit; text-decoration: none; }
+
+/* #endregion */
+
+/* #region VARIABLES */
+
+.fp-funplayer {
+  /* Couleurs Streamlit */
+  --fp-primary-color: #FF4B4B;
+  --fp-background-color: #FFFFFF;
+  --fp-secondary-background-color: #F0F2F6;
+  --fp-text-color: #262730;
+  --fp-border-color: #E6EBF5;
+  
+  /* Polices */
+  --fp-font-family: "Source Sans Pro", sans-serif;
+  --fp-font-code: "Source Code Pro", monospace;
+  
+  /* Espacements */
+  --fp-base-radius: 0.5rem;
+  --fp-spacing: 0.5rem;
+
+  /* Couleurs dérivées */
+  --fp-hover-color: color-mix(in srgb, var(--fp-primary-color) 10%, transparent);
+  --fp-focus-color: color-mix(in srgb, var(--fp-primary-color) 25%, transparent);
+  --fp-disabled-color: color-mix(in srgb, var(--fp-text-color) 30%, transparent);
+  --fp-tertiary-background-color: color-mix(in srgb, var(--fp-background-color) 50%, var(--fp-secondary-background-color));
+}
+
+.fp-funplayer[data-theme="dark"] {
+  --fp-background-color: #0E1117;
+  --fp-secondary-background-color: #262730;
+  --fp-text-color: #FAFAFA;
+  --fp-border-color: #464954;
+  --fp-logo-filter: brightness(0) invert(1); /* Inverse les couleurs en mode sombre */
+}
+
+/* #endregion */
+
+/* #region CLASSES UTILITAIRES */
+
+/* Layouts */
+.fp-layout-horizontal {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--fp-spacing);
+}
+
+.fp-layout-row {
+  display: flex;
+  align-items: center;
+  gap: var(--fp-spacing);
+}
+
+.fp-layout-column {
+  display: flex;
+  flex-direction: column;
+  gap: calc(var(--fp-spacing) * 0.5);
+}
+
+/* Flex utilities */
+.fp-flex { flex: 1; }
+.fp-no-shrink { flex-shrink: 0; }
+
+/* Sections */
+.fp-section {
+  padding: calc(var(--fp-spacing) * 2);
+}
+
+.fp-section-compact {
+  padding: var(--fp-spacing) calc(var(--fp-spacing) * 2);
+  min-height: 40px;
+}
+
+/* Boutons de base */
+.fp-btn {
+  font-family: var(--fp-font-family);
+  font-size: 0.8rem;
+  background: var(--fp-background-color);
+  color: var(--fp-text-color);
+  border: 1px solid var(--fp-border-color);
+  border-radius: calc(var(--fp-base-radius) * 0.6);
+  padding: calc(var(--fp-spacing) * 0.5) var(--fp-spacing);
+  cursor: pointer;
+  transition: all 0.15s ease;
+  min-height: 28px;
+  white-space: nowrap;
+  
+  &:hover {
+    background: var(--fp-hover-color);
+    border-color: var(--fp-primary-color);
+  }
+}
+
+.fp-btn-primary {
+  @extend .fp-btn;
+  background: var(--fp-primary-color);
+  color: white;
+  border-color: var(--fp-primary-color);
+  
+  &:hover { opacity: 0.9; }
+}
+
+.fp-btn-ghost {
+  @extend .fp-btn;
+  background: none;
+  border: none;
+  &:hover {
+    background: none;
+    border-color: none;
+  }
+}
+
+/* Inputs de base */
+.fp-input {
+  font-family: var(--fp-font-family);
+  font-size: 0.8rem;
+  background: var(--fp-background-color);
+  color: var(--fp-text-color);
+  border: 1px solid var(--fp-border-color);
+  border-radius: calc(var(--fp-base-radius) * 0.5);
+  padding: calc(var(--fp-spacing) * 0.5);
+  transition: border-color 0.15s ease;
+  min-height: 28px;
+  
+  &:hover, &:focus {
+    outline: none;
+    border-color: var(--fp-primary-color);
+  }
+  
+  &:focus {
+    box-shadow: 0 0 0 2px var(--fp-focus-color);
+  }
+  
+  /* ✅ AJOUTÉ: Virer les spinners moches sur tous les inputs number */
+  &[type="number"] {
+    /* Masquer les spinners WebKit */
+    &::-webkit-outer-spin-button,
+    &::-webkit-inner-spin-button {
+      -webkit-appearance: none;
+      appearance: none;
+      margin: 0;
+    }
+    
+    /* ✅ Propriété standard uniquement */
+    appearance: textfield;
+  }
+}
+
+.fp-select {
+  @extend .fp-input;
+  cursor: pointer;
+}
+
+/* ✅ NOUVEAU: Styling des options (limité mais mieux que rien) */
+.fp-select option {
+  background-color: var(--fp-background-color);
+  color: var(--fp-text-color);
+  padding: 8px 12px;
+  
+  /* ✅ Note: Ces propriétés ne fonctionnent que sur certains navigateurs */
+  &:hover, &:focus {
+    background-color: var(--fp-tertiary-background-color);
+  }
+  
+  &:checked {
+    background-color: var(--fp-tertiary-background-color);
+    font-weight: 500;
+  }
+}
+
+.fp-range {
+  width: 100%;
+  height: 2px;
+  background: var(--fp-border-color);
+  outline: none;
+  cursor: pointer;
+  accent-color: var(--fp-primary-color);  // ← La magie moderne
+}
+
+/* Typography de base */
+.fp-label {
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: var(--fp-text-color);
+  margin-bottom: 0;
+}
+
+.fp-badge {
+  font-family: var(--fp-font-code);
+  font-size: 0.8rem;
+  font-weight: 600;
+  background: var(--fp-secondary-background-color);
+  padding: 2px 6px;
+  border-radius: calc(var(--fp-base-radius) * 0.3);
+  white-space: nowrap;
+}
+
+.fp-unit {
+  font-size: 0.75rem;
+  color: var(--fp-text-color);
+  opacity: 0.7;
+}
+
+.fp-icon {
+  color: var(--fp-text-color);
+  opacity: 0.8;
+  transform: translateY(-1px); 
+}
+
+.fp-big-icon {
+  @extend .fp-icon;
+  margin-right: 6px;
+  opacity:1;
+  --icon-size:22px;
+}
+
+.fp-icon-button {
+  @extend .fp-icon;
+  transition: color 0.15s ease;
+
+  &:hover {
+    color: var(--fp-primary-color);
+    opacity: 1;
+  }
+}
+
+.fp-expanded-panel {
+  border: 1px solid var(--fp-border-color);
+  border-top: none;
+  border-radius: 0 0 var(--fp-base-radius) var(--fp-base-radius);
+  padding: var(--fp-spacing);
+  background: var(--fp-tertiary-background-color);
+}
+
+.fp-expandable-panel-header {
+  border: 1px solid var(--fp-border-color);
+  border-radius: var(--fp-base-radius) var(--fp-base-radius) 0 0;
+  padding: var(--fp-spacing);
+  background: var(--fp-tertiary-background-color);
+  
+  &:last-child {
+    border-radius: var(--fp-base-radius);
+  }
+}
+
+/* #endregion */
+
+/* #region FUNPLAYER */
+
+.fp-funplayer {
+  font-family: var(--fp-font-family);
+  font-size: 0.875rem;
+  color: var(--fp-text-color);
+  margin: 0;
+  width: 100%;
+  height: auto;
+  min-height: 200px;
+  display: flex;
+  flex-direction: column;
+}
+
+/* #endregion */
+
+/* #region HAPTIC SETTINGS */
+
+.fp-haptic-settings {
+  width: 100%;
+  height: auto;
+  min-height: 40px;
+}
+
+.fp-haptic-settings-expanded {
+  @extend .fp-section;
+  background: var(--fp-secondary-background-color);
+  border: 1px solid var(--fp-border-color);
+  border-top: none;
+  border-radius: 0;
+}
+
+.fp-haptic-settings-connection-section,
+.fp-haptic-settings-master-section,
+.fp-haptic-settings-actuators-section {
+  margin-bottom: calc(var(--fp-spacing) * 2);
+}
+
+.fp-haptic-settings-section-title {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--fp-text-color);
+  margin: 0 0 calc(var(--fp-spacing) * 0.5) 0;
+  display: flex;
+  align-items: center;
+  gap: calc(var(--fp-spacing) * 0.5);
+}
+
+.fp-haptic-settings-section-header-icon {
+  @extend .fp-big-icon;
+}
+
+.fp-haptic-settings-connection-controls,
+.fp-haptic-settings-master-controls {
+  @extend .fp-layout-row;
+  margin-bottom: calc(var(--fp-spacing) * 1.5);
+}
+
+.fp-haptic-settings-url-control,
+.fp-haptic-settings-rate-control,
+.fp-haptic-settings-scale-control,
+.fp-haptic-settings-offset-control {
+  @extend .fp-layout-column;
+  @extend .fp-flex;
+}
+
+.fp-haptic-settings-url-input-group,
+.fp-haptic-settings-scale-input-group,
+.fp-haptic-settings-offset-input-group {
+  @extend .fp-layout-row;
+}
+
+.fp-haptic-settings-url-input,
+.fp-haptic-settings-scale-range,
+.fp-haptic-settings-offset-range {
+  @extend .fp-input;
+  @extend .fp-flex;
+}
+
+.fp-haptic-settings-scale-range,
+.fp-haptic-settings-offset-range {
+  @extend .fp-range;
+}
+
+.fp-haptic-settings-scale-number,
+.fp-haptic-settings-offset-number {
+  @extend .fp-input;
+  width: 80px;
+  text-align: center;
+}
+
+.fp-haptic-settings-url-reset-btn {
+  @extend .fp-btn;
+  @extend .fp-btn-ghost;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  min-width: auto;
+}
+
+.fp-haptic-settings-rate-select {
+  @extend .fp-select;
+  min-width: 120px;
+}
+
+.fp-haptic-settings-url-label,
+.fp-haptic-settings-rate-label,
+.fp-haptic-settings-scale-label,
+.fp-haptic-settings-offset-label {
+  @extend .fp-label;
+}
+
+.fp-haptic-settings-url-status,
+.fp-haptic-settings-rate-info {
+  @extend .fp-unit;
+  font-size: 0.7rem;
+  opacity: 0.6;
+}
+
+.fp-haptic-settings-actuators-header {
+  @extend .fp-layout-horizontal;
+  margin-bottom: calc(var(--fp-spacing) * 0.5);
+}
+
+.fp-haptic-settings-automap-btn {
+  @extend .fp-btn;
+}
+
+.fp-haptic-settings-actuators-list {
+  @extend .fp-layout-column;
+  gap: calc(var(--fp-spacing) * 0.25);
+}
+
+.fp-haptic-settings-divider {
+  height: 2px;
+  background: var(--fp-border-color);
+  margin: calc(var(--fp-spacing) * 2) 0;
+  opacity: 0.5;
+}
+
+/* #endregion */
+
+/* #region BUTTPLUG SETTINGS */
+
+.fp-buttplug-settings {
+  @extend .fp-layout-horizontal;
+  @extend .fp-section-compact;
+  border: 1px solid var(--fp-border-color);
+  background: var(--fp-secondary-background-color);
+  border-radius: var(--fp-base-radius) var(--fp-base-radius) 0 0;
+}
+
+.fp-buttplug-settings-status {
+  @extend .fp-layout-row;
+  @extend .fp-flex;
+  gap: calc(var(--fp-spacing) * 0.5);
+}
+
+.fp-buttplug-settings-actions {
+  @extend .fp-layout-row;
+  @extend .fp-no-shrink;
+  gap: calc(var(--fp-spacing) * 0.5);
+}
+
+.fp-buttplug-settings-connection-icon {
+  @extend .fp-big-icon;
+}
+
+.fp-buttplug-settings-device-name {
+  @extend .fp-label;
+  max-width: 150px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.fp-buttplug-settings-no-haptic-hint {
+  @extend .fp-unit;
+  opacity: 0.5;
+}
+
+.fp-buttplug-settings-connect-btn,
+.fp-buttplug-settings-disconnect-btn {
+  @extend .fp-btn;
+  @extend .fp-btn-primary;
+}
+
+.fp-buttplug-settings-rescan-btn {
+  @extend .fp-btn;
+  @extend .fp-btn-ghost;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  min-width: auto;
+}
+
+.fp-buttplug-settings-device-select {
+  @extend .fp-select;
+  min-width: 120px;
+}
+
+.fp-buttplug-settings-toggle {
+  @extend .fp-btn;
+  @extend .fp-btn-ghost;
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.7rem;
+  border-radius: calc(var(--fp-base-radius) * 0.3);
+  transition: all 0.15s ease;
+}
+
+/* #endregion */
+
+/* #region CHANNEL SETTINGS */
+
+.fp-channel-settings {
+  width: 100%;
+  height: auto;
+  min-height: 40px;
+}
+
+.fp-channel-settings-header {
+  @extend .fp-expandable-panel-header;
+  @extend .fp-layout-horizontal;
+  @extend .fp-section-compact;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  overflow: hidden;
+  
+  &:hover {
+    border-color: var(--fp-primary-color);
+  }
+}
+
+.fp-channel-settings-title {
+  @extend .fp-label;
+}
+
+.fp-channel-settings-toggle {
+  @extend .fp-btn;
+  @extend .fp-btn-ghost;
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.7rem;
+  border-radius: calc(var(--fp-base-radius) * 0.3);
+  transition: all 0.15s ease;
+  flex-shrink: 0;
+}
+
+.fp-channel-settings-expanded {
+  @extend .fp-expanded-panel;
+}
+
+.fp-channel-settings-empty {
+  text-align: center;
+  color: var(--fp-text-color);
+  opacity: 0.6;
+  padding: var(--fp-spacing);
+}
+
+.fp-channel-settings-channel {
+  @extend .fp-layout-row;  // ← Tout en horizontal !
+  align-items: center;     // ← Alignement vertical centré
+  gap: var(--fp-spacing);     // ← Espacement uniforme
+  margin-bottom: calc(var(--fp-spacing) * 1.5);
+  
+  &:last-child {
+    margin-bottom: 0;
+  }
+}
+
+.fp-channel-settings-channel-name {
+  @extend .fp-badge;
+  @extend .fp-no-shrink;  // ← Largeur fixe
+  min-width: 80px;        // ← Largeur minimum pour alignement
+  max-width: 120px;       // ← Largeur maximum
+}
+
+.fp-channel-settings-field {
+  @extend .fp-layout-row;  // ← Label + select côte à côte
+  @extend .fp-flex;        // ← Se partage l'espace restant équitablement
+  align-items: center;
+  gap: calc(var(--fp-spacing) * 0.25);
+  min-width: 0;            // ← Permet la compression si nécessaire
+}
+
+.fp-channel-settings-field-label {
+  @extend .fp-label;
+  @extend .fp-no-shrink;
+  font-size: 0.75rem;
+  white-space: nowrap;  // ← Évite les retours à la ligne
+  min-width: 45px;      // ← Largeur minimum pour "Duration:"
+}
+
+.fp-channel-settings-field-select {
+  @extend .fp-select;
+  @extend .fp-flex;     // ← S'adapte à l'espace disponible !
+  min-width: 60px;      // ← Largeur minimum pour lisibilité
+}
+
+.fp-channel-settings-actions {
+  @extend .fp-layout-row;
+  margin-top: var(--fp-spacing);
+  gap: calc(var(--fp-spacing) * 0.5);
+}
+
+.fp-channel-settings-validate-btn {
+  @extend .fp-btn;
+  @extend .fp-btn-primary;
+}
+
+.fp-channel-settings-cancel-btn {
+  @extend .fp-btn;
+  @extend .fp-btn-ghost;
+}
+
+/* #endregion */
+
+/* #region ACTUATOR SETTINGS */
+
+.fp-actuator-settings {
+  width: 100%;
+  height: auto;
+  min-height: 40px;
+}
+
+.fp-actuator-settings-header {
+  @extend .fp-expandable-panel-header;
+  @extend .fp-layout-horizontal;
+  @extend .fp-section-compact;
+  transition: all 0.15s ease;
+  overflow: hidden;
+  
+  &:hover {
+    border-color: var(--fp-primary-color);
+  }
+}
+
+.fp-actuator-settings-error {
+  @extend .fp-section-compact;
+  color: var(--fp-text-color);
+  opacity: 0.6;
+}
+
+.fp-actuator-settings-badge {
+  @extend .fp-badge;
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+  
+  &.fp-actuator-settings-badge-disabled {
+    opacity: 0.5;
+  }
+}
+
+.fp-actuator-settings-warning {
+  margin-left: 4px;
+  opacity: 0.7;
+}
+
+.fp-actuator-settings-enable-toggle {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  user-select: none;
+  flex-shrink: 0;
+}
+
+.fp-actuator-settings-enable-checkbox {
+  width: 14px;
+  height: 14px;
+  accent-color: var(--fp-primary-color);
+  cursor: pointer;
+}
+
+.fp-actuator-settings-channel-select {
+  @extend .fp-select;
+  @extend .fp-flex;
+}
+
+.fp-actuator-settings-expand-toggle {
+  @extend .fp-btn;
+  @extend .fp-btn-ghost;
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.7rem;
+  border-radius: calc(var(--fp-base-radius) * 0.3);
+  transition: all 0.15s ease;
+  flex-shrink: 0;
+}
+
+.fp-actuator-settings-expanded {
+  @extend .fp-expanded-panel;
+  @extend .fp-layout-column;
+  gap: calc(var(--fp-spacing) * 0.5);
+}
+
+.fp-actuator-settings-warning-message {
+  padding: calc(var(--fp-spacing) * 0.5);
+  background: rgba(255, 193, 7, 0.1);
+  border: 1px solid rgba(255, 193, 7, 0.3);
+  border-radius: calc(var(--fp-base-radius) * 0.5);
+  font-size: 0.75rem;
+  color: var(--fp-text-color);
+  opacity: 0.8;
+}
+
+.fp-actuator-settings-compatibility-info {
+  font-size: 0.7rem;
+  opacity: 0.7;
+  margin-bottom: calc(var(--fp-spacing) * 0.5);
+}
+
+.fp-actuator-settings-controls {
+  @extend .fp-layout-row;  // ← Horizontal comme master-controls
+  margin-bottom: calc(var(--fp-spacing) * 0.5);
+}
+
+.fp-actuator-settings-scale-control,
+.fp-actuator-settings-offset-control {
+  @extend .fp-layout-column;  // ← Chaque contrôle reste vertical
+  @extend .fp-flex;           // ← Se partagent l'espace équitablement
+}
+
+.fp-actuator-settings-scale-label,
+.fp-actuator-settings-offset-label {
+  @extend .fp-label;
+}
+
+.fp-actuator-settings-scale-range,
+.fp-actuator-settings-offset-range {
+  @extend .fp-range;
+}
+
+.fp-actuator-settings-invert-toggle {
+  @extend .fp-layout-row;
+  align-items: center;
+  cursor: pointer;
+  user-select: none;
+}
+
+.fp-actuator-settings-invert-checkbox {
+  @extend .fp-actuator-settings-enable-checkbox;
+  margin-right: calc(var(--fp-spacing) * 0.5);
+}
+
+.fp-actuator-settings-invert-label {
+  @extend .fp-label;
+}
+
+/* #endregion */
+
+/* #region MEDIA PLAYER */
+
+.fp-media-player {
+  width: 100%;
+  height: auto;
+  min-height: 200px;
+  border: 1px solid var(--fp-border-color);
+  border-top: none;
+}
+
+.fp-media-player-video {
+  /* Laisser Video.js gérer sa logique responsive native */
+  width: 100%;
+  height: auto;
+  
+  /* Styles Video.js personnalisés */
+  &.vjs-default-skin {
+    .vjs-control-bar {
+      background: linear-gradient(to top, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0.4) 50%, rgba(0,0,0,0) 100%);
+    }
+    
+    .vjs-play-progress {
+      background: var(--fp-primary-color);
+    }
+    
+    .vjs-volume-level {
+      background: var(--fp-primary-color);
+    }
+    
+    .vjs-big-play-button {
+      background: var(--fp-primary-color);
+      border-color: var(--fp-border-color);
+    }
+    
+    /* Contrôles playlist dans Video.js */
+    .vjs-previous-button,
+    .vjs-next-button {
+      font-size: 1.2em;
+      width: 2.5em;
+      
+      &:disabled {
+        opacity: 0.5;
+      }
+    }
+  }
+}
+
+.fp-media-player-placeholder {
+  width: 100%;
+  background-color: #000; /* Fond noir */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 0;
+  
+  /* ✅ Ratio 16:9 comme une vraie vidéo */
+  aspect-ratio: 16 / 9;
+}
+
+.fp-media-player-placeholder-logo {
+  color: white; /* ✅ Logo en blanc */
+  opacity: 0.7;
+  transition: opacity 0.3s ease;
+  
+  /* ✅ Effet subtil au hover */
+  &:hover {
+    opacity: 1;
+  }
+}
+
+/* #endregion */
+
+/* #region HAPTIC VISUALIZER */
+
+.fp-haptic-visualizer {
+  width: 100%;
+  height: auto;
+  min-height: 180px;
+  background: var(--fp-secondary-background-color);
+  border: 1px solid var(--fp-border-color);
+  border-top: none;
+  border-radius: 0;
+  overflow: hidden;
+}
+
+.fp-haptic-visualizer-canvas-area {
+  position: relative;
+  padding: calc(var(--fp-spacing) * 0.5);
+  height: 180px;
+}
+
+.fp-haptic-visualizer-canvas {
+  width: 100%;
+  height: 100%;
+  display: block;
+  background: #000;
+  border: 1px solid var(--fp-border-color);
+  border-radius: calc(var(--fp-base-radius) * 0.5);
+}
+
+.fp-haptic-visualizer-config-btn {
+  @extend .fp-btn;
+  @extend .fp-btn-ghost;
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  font-size: 12px;
+  opacity: 0.6;
+  background: rgba(0,0,0,0.1);
+  border: none;
+  border-radius: 50%;
+}
+
+.fp-haptic-visualizer-config {
+  @extend .fp-section;
+  @extend .fp-section-compact;
+  border-top: 1px solid var(--fp-border-color);
+  background-color: var(--fp-tertiary-background-color);
+  padding: var(--fp-spacing);
+  height: auto;
+}
+
+.fp-haptic-visualizer-config-row {
+  @extend .fp-layout-row;
+  align-items: center;
+  margin-bottom: calc(var(--fp-spacing) * 0.5);
+  
+  &:last-child {
+    margin-bottom: 0;
+  }
+}
+
+.fp-haptic-visualizer-config-label {
+  @extend .fp-label;
+  @extend .fp-no-shrink;
+  min-width: 80px;
+}
+
+.fp-haptic-visualizer-config-range {
+  @extend .fp-range;
+  @extend .fp-flex;
+}
+
+/* #endregion */
+
+/* #region LOGGING / DEBUG */
+
+.fp-logging {
+  width: 100%;
+  height: auto;
+  min-height: 100px;
+  background: var(--fp-secondary-background-color);
+  border: 1px solid var(--fp-border-color);
+  border-top: none;
+  border-radius: 0;
+  overflow: hidden;
+}
+
+.fp-logging-header {
+  @extend .fp-layout-horizontal;
+  padding: 8px 12px;
+  background: var(--fp-secondary-background-color);
+  border-bottom: 1px solid var(--fp-border-color);
+  min-height: 40px;
+}
+
+.fp-logging-title {
+  @extend .fp-layout-row;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--fp-text-color);
+}
+
+.fp-logging-icon {
+  margin-right: 8px;
+}
+
+.fp-logging-label {
+  @extend .fp-label;
+}
+
+.fp-logging-count {
+  @extend .fp-badge;
+}
+
+.fp-logging-actions {
+  @extend .fp-layout-row;
+  gap: 4px;
+  align-items: center;
+}
+
+.fp-logging-clear-btn,
+.fp-logging-download-btn,
+.fp-logging-copy-btn,
+.fp-logging-autoscroll-btn {
+  @extend .fp-btn;
+  @extend .fp-btn-ghost;
+  padding: 4px 6px;
+  font-size: 12px;
+  min-height: 24px;
+  border-radius: 2px;
+}
+
+.fp-logging-autoscroll-btn-active {
+  background: var(--fp-hover-color);
+  opacity: 1;
+}
+
+.fp-logging-textarea {
+  width: 100%;
+  height: 250px;
+  font-family: 'Courier New', 'Monaco', 'Menlo', monospace;
+  font-size: 11px;
+  line-height: 1.4;
+  padding: 12px;
+  border: none;
+  border-radius: 0;
+  outline: none;
+  background: #1a1a1a;
+  color: #00ff00;
+  resize: vertical;
+  min-height: 150px;
+  max-height: 500px;
+  margin: 0;
+  
+  /* Scrollbar custom */
+  &::-webkit-scrollbar {
+    width: 8px;
+  }
+  
+  &::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.1);
+  }
+  
+  &::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.3);
+    border-radius: 0;
+    
+    &:hover {
+      background: rgba(255, 255, 255, 0.5);
+    }
+  }
+}
+
+/* Theme clair */
+[data-theme="light"] .fp-logging-textarea {
+  background: #f8f8f8;
+  color: #333;
+  border-top: 1px solid var(--fp-border-color);
+}
+
+/* #endregion */
+
+/* #region STATUS BAR */
+
+.fp-status-bar {
+  @extend .fp-layout-horizontal;
+  @extend .fp-section-compact;
+  border: 1px solid var(--fp-border-color);
+  border-top: none;
+  background: var(--fp-secondary-background-color);
+  border-radius: 0 0 var(--fp-base-radius) var(--fp-base-radius);
+  position: relative;
+}
+
+.fp-status-bar-status {
+  @extend .fp-label;
+  @extend .fp-flex;
+  font-size: 0.8rem;
+}
+
+.fp-status-bar-status-icon{
+  @extend .fp-big-icon;
+}
+
+.fp-status-bar-logo-area {
+  /* ✅ Positionnement absolu centré parfait */
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  
+  /* ✅ Z-index pour éviter que les boutons passent par-dessus */
+  z-index: 1;
+  
+  /* ✅ Pointer events pour éviter de bloquer les clics */
+  pointer-events: none;
+}
+
+.fp-status-bar-logo {
+  color: var(--fp-text-color);
+  opacity: 0.7;
+  transition: opacity 0.15s ease;
+  
+  &:hover { opacity: 1; }
+}
+
+.fp-status-bar-controls {
+  @extend .fp-layout-row;
+  @extend .fp-no-shrink;
+  gap: calc(var(--fp-spacing) * 0.5);
+}
+
+.fp-status-bar-playlist-btn {
+  @extend .fp-btn;
+  @extend .fp-btn-ghost;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  font-size: 1rem;
+  border-radius: calc(var(--fp-base-radius) * 0.5);
+}
+
+.fp-status-bar-debug-btn {
+  @extend .fp-btn;
+  @extend .fp-btn-ghost;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  font-size: 1rem;
+  border-radius: calc(var(--fp-base-radius) * 0.5);
+}
+
+.fp-status-bar-visualizer-btn {
+  @extend .fp-btn;
+  @extend .fp-btn-ghost;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  font-size: 1rem;
+  border-radius: calc(var(--fp-base-radius) * 0.5);
+}
+
+/* #endregion */
+
+/* #region PLAYLIST */
+
+.fp-playlist {
+  border: 1px solid var(--fp-border-color);
+  border-radius: var(--fp-base-radius);
+  margin-top: var(--fp-spacing);
+  width: 100%;
+}
+
+.fp-playlist-header {
+  padding: var(--fp-spacing);
+  border-bottom: 1px solid var(--fp-border-color);
+  background: var(--fp-secondary-background-color);
+}
+
+.fp-playlist-title {
+  @extend .fp-label;
+}
+
+.fp-playlist-items {
+  /* Container pour les items, pas de style particulier */
+}
+
+.fp-playlist-item {
+  @extend .fp-layout-row;
+  align-items: center;
+  gap: calc(var(--fp-spacing) * 0.75);
+  padding: calc(var(--fp-spacing) * 0.75) var(--fp-spacing);
+  border-bottom: 1px solid var(--fp-border-color);
+  cursor: pointer;
+  transition: background 0.15s ease;
+  
+  &:last-child {
+    border-bottom: none;
+  }
+  
+  &:hover {
+    background: var(--fp-hover-color);
+  }
+  
+  &.fp-playlist-item-active {
+    background: var(--fp-primary-color);
+    color: white;
+    
+    &:hover {
+      background: var(--fp-primary-color);
+      opacity: 0.9;
+    }
+    
+    /* Bords arrondis pour le dernier item quand il est actif */
+    &:last-child {
+      border-radius: 0 0 var(--fp-base-radius) var(--fp-base-radius);
+    }
+    
+    .fp-playlist-item-info {
+      opacity: 0.9;
+    }
+  }
+}
+
+.fp-playlist-item-thumbnail {
+  width: 48px;
+  height: 32px;
+  flex-shrink: 0;
+  border-radius: calc(var(--fp-base-radius) * 0.3);
+  overflow: hidden;
+  background: var(--fp-secondary-background-color);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--fp-border-color);
+}
+
+.fp-playlist-item-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.fp-playlist-item-content {
+  flex: 1;
+  min-width: 0;
+  @extend .fp-layout-column;
+  gap: calc(var(--fp-spacing) * 0.25);
+}
+
+.fp-playlist-item-title {
+  font-weight: 500;
+  font-size: 0.8rem;
+  margin: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.fp-playlist-item-info {
+  font-size: 0.7rem;
+  opacity: 0.7;
+  @extend .fp-layout-row;
+  gap: calc(var(--fp-spacing) * 0.5);
+}
+
+/* #endregion */
+
+/* #region RESPONSIVE / MOBILE */
+
+@media (max-width: 768px) {
+  .fp-funplayer {
+    flex-direction: column;
+  }
+  
+  .fp-playlist {
+    border: 1px solid var(--fp-border-color);
+    width: 100%;
+    order: -1; /* Playlist en haut sur mobile */
+  }
+  
+  .fp-playlist-items {
+    max-height: 150px;
+    overflow-y: auto;
+  }
+
+  .fp-haptic-settings-connection-controls,
+  .fp-haptic-settings-master-controls {
+    flex-direction: column;
+    gap: calc(var(--fp-spacing) * 0.5);
+  }
+  
+  .fp-buttplug-settings-device-name {
+    max-width: 100px;
+  }
+  
+  .fp-btn {
+    font-size: 0.7rem;
+    min-height: 22px;
+  }
+  
+  .fp-haptic-settings-scale-number,
+  .fp-haptic-settings-offset-number {
+    width: 60px;
+  }
+  
+  .fp-section {
+    padding: var(--fp-spacing);
+  }
+  
+  .fp-haptic-visualizer {
+    height: 120px;
+  }
+  
+  .fp-logging-textarea {
+    height: 200px;
+    font-size: 10px;
+  }
+  
+  .fp-logging-actions {
+    flex-wrap: wrap;
+    gap: 2px;
+  }
+}
+
+/* #endregion */
+
+/* #region GLOBAL STATES & MODIFIERS */
+
+/* Éléments désactivés */
+.fp-disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  
+  &:hover {
+    background: none !important;
+    border-color: var(--fp-border-color) !important;
+  }
+}
+
+/* Éléments en loading */
+.fp-loading {
+  position: relative;
+  pointer-events: none;
+  
+  &::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(255, 255, 255, 0.7);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+}
+
+[data-theme="dark"] .fp-loading::after {
+  background: rgba(0, 0, 0, 0.7);
+}
+
+.fp-btn:focus:not(:focus-visible),
+.fp-input:focus:not(:focus-visible),
+.fp-select:focus:not(:focus-visible) {
+  outline: none;
+  box-shadow: none;
+}
+
+/* Focus visible seulement pour navigation clavier */
+.fp-btn:focus-visible,
+.fp-input:focus-visible,
+.fp-select:focus-visible {
+  outline: 1px solid var(--fp-primary-color);
+  outline-offset: 1px;
+}
+
+/* #endregion */

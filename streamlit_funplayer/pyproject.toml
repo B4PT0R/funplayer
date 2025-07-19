@@ -1,0 +1,30 @@
+[build-system]
+requires = ["setuptools>=45", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "streamlit-funplayer"
+version = "0.1.25"
+description = "Streamlit component for synchronized media and haptic playback"
+readme = "README.md"
+license = {text = "CC-BY-NC-SA-4.0"}
+requires-python = ">=3.9"
+dependencies = ["streamlit>=1.45.0"]
+
+[[project.authors]]
+name = "Baptiste Ferrand"
+email = "bferrand.math@gmail.com"
+
+[project.urls]
+Homepage = "https://github.com/B4PT0R/streamlit-funplayer"
+Repository = "https://github.com/B4PT0R/streamlit-funplayer"
+
+[tool.setuptools]
+include-package-data = true
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["streamlit_funplayer*"]
+
+[tool.setuptools.package-data]
+streamlit_funplayer = ["frontend/dist/**/*"]

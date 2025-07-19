@@ -1,0 +1,63 @@
+{
+  "name":"funplayer-react",
+  "version": "0.1.25",
+  "private": false,
+  "type": "module",
+  "main": "./dist/index.js",
+  "module": "./dist/index.js",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "default": "./dist/index.js"
+    },
+    "./style.css": {
+      "import": "./dist/style.css",
+      "default": "./dist/style.css"
+    }
+  },
+  "files": ["dist"],
+  "dependencies": {
+    "buttplug": "^3.2.2",
+    "feather-icons": "^4.29.2",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "three": "^0.177.0",
+    "video.js": "^8.23.3",
+    "videojs-playlist": "^5.2.0",
+    "videojs-vr": "^2.0.0"
+  },
+  "scripts": {
+    "start": "vite",
+    "build": "vite build",
+    "build:embed": "vite build --config vite.config.embed.js",
+    "dev:webcomponent": "vite --port 3002 --open test-webcomponent.html"
+  },
+  "eslintConfig": {
+    "extends": "react-app"
+  },
+  "browserslist": {
+    "production": [
+      ">0.2%",
+      "not dead",
+      "not op_mini all"
+    ],
+    "development": [
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version"
+    ]
+  },
+  "homepage": ".",
+  "devDependencies": {
+    "@types/node": "^22.14.1",
+    "@types/react": "^18.3.20",
+    "@types/react-dom": "^18.3.6",
+    "@vitejs/plugin-react-swc": "^3.9.0",
+    "autoprefixer": "^10.4.20",
+    "sass": "^1.89.2",
+    "terser": "^5.43.1",
+    "typescript": "^5.8.3",
+    "vite": "^6.2.6"
+  }
+}
