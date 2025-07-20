@@ -47,7 +47,7 @@ else:
     # replace the `url` param with `path`, and point it to the component's
     # build directory:
     parent_dir = os.path.dirname(os.path.abspath(__file__))
-    build_dir = os.path.join(parent_dir, "frontend/dist")
+    build_dir = os.path.join(parent_dir, "frontend/build")
     _component_func = components.declare_component("streamlit_funplayer", path=build_dir)
 
 # ============================================================================

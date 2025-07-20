@@ -19,7 +19,7 @@ export default defineConfig({
     // ============================================================================
     
     // Répertoire de sortie spécifique embed
-    outDir: 'dist-embed',
+    outDir: 'build-embed',
     
     // Clean avant build
     emptyOutDir: true,

@@ -1,13 +1,13 @@
 {
   "name": "streamlit-funplayer",
-  "version": "0.1.0",
+  "version": "0.1.33",
   "private": true,
   "type": "module",
   "dependencies": {
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "streamlit-component-lib": "^2.0.0",
-    "funplayer": "*"
+    "funplayer-react": "file:../../../funplayer"
   },
   "scripts": {
     "start": "vite",

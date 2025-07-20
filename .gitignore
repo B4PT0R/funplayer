@@ -52,11 +52,6 @@ ENV/
 .DS_Store
 Thumbs.db
 
-# Build and distribution
-/dist/
-/build/
-
-
 # Version control
 .git/
 .hg/
@@ -68,10 +63,9 @@ node_modules/
 bower_components/
 #spkg package-lock.json
 #spkg bootstrap.min.css
-#spkg 
-#spkg streamlit_funplayer/streamlit_funplayer/frontend/dist
-#spkg funplayer/dist
-#spkg funplayer/dist-embed
+#spkg streamlit_funplayer/streamlit_funplayer/frontend/build
+#spkg funplayer/build
+#spkg funplayer/build-embed
 yarn.lock
 npm-debug.log
 yarn-error.log

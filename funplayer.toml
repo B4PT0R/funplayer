@@ -1,0 +1,9 @@
+[project]
+version = "0.1.33"
+[[project.authors]]
+name = "Baptiste Ferrand"
+email = "bferrand.math@gmail.com"
+
+[project.urls]
+Homepage = "https://github.com/B4PT0R/funplayer"
+Repository = "https://github.com/B4PT0R/funplayer"

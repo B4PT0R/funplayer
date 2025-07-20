@@ -20,7 +20,7 @@ export default defineConfig(({ mode }) => {
       }
     },
     build: {
-      outDir: "dist",
+      outDir: "build",
       // ✅ MODIFIÉ: Spécifier le point d'entrée index.jsx
       rollupOptions: {
         input: {

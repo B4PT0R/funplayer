@@ -1,7 +1,7 @@
 import React from 'react';
 import { Streamlit, StreamlitComponentBase, withStreamlitConnection } from 'streamlit-component-lib';
-import FunPlayer from 'funplayer'
-import 'funplayer/style.css'
+import FunPlayer from 'funplayer-react'
+import 'funplayer-react/style.css'
 
 class StreamlitFunPlayer extends StreamlitComponentBase {
   constructor(props) {

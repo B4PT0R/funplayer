@@ -1,22 +1,24 @@
 {
-  "name":"funplayer-react",
-  "version": "0.1.25",
+  "name": "funplayer-react",
+  "version": "0.1.33",
   "private": false,
   "type": "module",
-  "main": "./dist/index.js",
-  "module": "./dist/index.js",
+  "main": "./build/index.js",
+  "module": "./build/index.js",
   "exports": {
     ".": {
-      "types": "./dist/index.d.ts",
-      "import": "./dist/index.js",
-      "default": "./dist/index.js"
+      "types": "./build/index.d.ts",
+      "import": "./build/index.js",
+      "default": "./build/index.js"
     },
     "./style.css": {
-      "import": "./dist/style.css",
-      "default": "./dist/style.css"
+      "import": "./build/style.css",
+      "default": "./build/style.css"
     }
   },
-  "files": ["dist"],
+  "files": [
+    "build"
+  ],
   "dependencies": {
     "buttplug": "^3.2.2",
     "feather-icons": "^4.29.2",

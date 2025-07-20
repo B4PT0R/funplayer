@@ -1,26 +1,32 @@
 #!/usr/bin/env python3
 """
-deploy.py – robuste + logs d'étapes + Vercel integration
+deploy.py – Pipeline de déploiement dual React/Streamlit
 --------------------------------------------------------
 
-Pipeline entièrement automatisé :
-    1. Vérif pré-requis (git, libs Python, token GitHub)
-    2. Bootstrap fichiers (pyproject, README, LICENCE, .gitignore, …)
-    3. Nettoyage build/
-    4. Bump patch de version (format X.Y.Z)
-    5. Build éventuel frontend npm + embed
-    6. Sync version vercel.json
-    7. Build paquet Python + install -e .
-    8. Git init / remote / push / tag
-    9. Upload dist/* sur PyPI via Twine
-    10. Trigger Vercel deployment (optionnel)
+Pipeline entièrement automatisé pour projet séparé en deux packages :
+    1. Git repo clean check
+    2. Version source depuis funplayer.toml
+    3. Check versions déjà publiées
+    4. Increment patch + sync vers tous les fichiers de config
+    5. Build funplayer (React package normal)
+    6. Build funplayer embed 
+    7. Build frontend Streamlit
+    8. Set _RELEASE=True si nécessaire
+    9. Build package Python Streamlit
+    10. Validation des builds
+    11. Git push + tag
+    12. Publish funplayer-react sur npm (avec gestion gracieuse erreurs)
+    13. Publish streamlit-funplayer sur PyPI (avec gestion gracieuse erreurs)
+    14. Install local -e upgrade
 
-Chaque étape est loggée ; en cas d'échec, message clair – pas de traceback
-brut.
+Usage:
+    python deploy.py          # Déploiement complet
+    python deploy.py --dry-run # Test sans publication
+
+Chaque étape est loggée ; en cas d'échec, message clair.
 """
 
 def main():
-
     # ────────────────────────── IMPORTS STANDARD ─────────────────────────
     import os
     import sys
@@ -48,6 +54,25 @@ def main():
         except subprocess.CalledProcessError as e:
             fail(step, f"commande « {' '.join(e.cmd)} » → code {e.returncode}")
 
+    def run_publish(cmd, step, cwd=None, ignore_already_published=True):
+        """Subprocess wrapper spécial pour publications avec gestion gracieuse des erreurs."""
+        log(step, " ".join(cmd))
+        try:
+            result = subprocess.run(cmd, cwd=cwd, check=True, capture_output=True, text=True)
+            return True
+        except subprocess.CalledProcessError as e:
+            error_output = e.stderr.lower() if e.stderr else ""
+            
+            if ignore_already_published and any(phrase in error_output for phrase in [
+                "already exists", "cannot publish over", "version already published"
+            ]):
+                log(step, "Version déjà publiée (skipped)")
+                return False
+            else:
+                fail(step, f"commande « {' '.join(e.cmd)} » → code {e.returncode}\n{e.stderr}")
+                
+        return False
+
     @contextmanager
     def step(name: str):
         log(name, "démarrage…")
@@ -60,6 +85,9 @@ def main():
     # ────────────────────────── PRÉ-REQUIS SYSTÈME ───────────────────────
     if shutil.which("git") is None:
         fail("Pré-requis", "git introuvable dans le PATH")
+    
+    if shutil.which("npm") is None:
+        fail("Pré-requis", "npm introuvable dans le PATH")
 
     # ────────────────────────── LIBS PYTHON ──────────────────────────────
     def ensure_libs():
@@ -83,7 +111,6 @@ def main():
                 quiet=True,
             )
 
-
     ensure_libs()
     import toml, requests
     from dotenv import load_dotenv
@@ -104,21 +131,50 @@ def main():
         major, minor, patch = map(int, parts)
         return f"{major}.{minor}.{patch + 1}"
 
+    def update_json_file(file_path: Path, version: str, step_name: str):
+        """Met à jour la version dans un fichier JSON."""
+        if file_path.exists():
+            data = json.loads(file_path.read_text())
+            data["version"] = version
+            file_path.write_text(json.dumps(data, indent=2))
+            log(step_name, f"{file_path.name} version → {version}")
+
+    def update_init_release_flag(init_file: Path):
+        """Met _RELEASE=True dans __init__.py si actuellement False."""
+        if not init_file.exists():
+            return False
+        
+        content = init_file.read_text()
+        if "_RELEASE = False" in content:
+            new_content = content.replace("_RELEASE = False", "_RELEASE = True")
+            init_file.write_text(new_content)
+            log("_RELEASE flag", f"{init_file} → _RELEASE = True")
+            return True
+        return False
+
     # ────────────────────────── CONTEXTE GLOBAL ─────────────────────────
-    ROOT = Path.cwd()
-    PYPROJECT = ROOT / "pyproject.toml"
-    VERCEL_JSON = ROOT / "vercel.json"
+    # Répertoire racine = répertoire du script deploy.py 
+    ROOT = Path(__file__).parent
+    FUNPLAYER_TOML = ROOT / "funplayer.toml"
+    FUNPLAYER_DIR = ROOT / "funplayer"
+    STREAMLIT_DIR = ROOT / "streamlit_funplayer"
+    
+    # Mode dry-run
+    DRY_RUN = "--dry-run" in sys.argv
+    if DRY_RUN:
+        print("🔍 Mode DRY-RUN activé - aucune publication ne sera effectuée")
+    
+    # Vérification structure projet
+    if not FUNPLAYER_TOML.exists():
+        fail("Structure", "funplayer.toml introuvable à la racine")
+    if not FUNPLAYER_DIR.exists():
+        fail("Structure", "dossier /funplayer introuvable")
+    if not STREAMLIT_DIR.exists():
+        fail("Structure", "dossier /streamlit_funplayer introuvable")
 
-    load_dotenv()
-    GITHUB_TOKEN = os.getenv("GITHUB_TOKEN") or fail("ENV", "GITHUB_TOKEN manquant dans .env")
-    VERCEL_TOKEN = os.getenv("VERCEL_TOKEN")  # Optionnel pour auto-deploy
+    load_dotenv()  # Load .env if present, but tokens can come from .bashrc
+    GITHUB_TOKEN = os.getenv("GITHUB_TOKEN") or fail("ENV", "GITHUB_TOKEN manquant dans l'environnement")
     HEADERS = {"Authorization": f"Bearer {GITHUB_TOKEN}"}
-
-    # Détermination du nom de paquet
-    if PYPROJECT.exists():
-        PKG_NAME = toml.load(PYPROJECT)["project"]["name"]
-    else:
-        PKG_NAME = os.getenv("PKG_NAME") or ROOT.name.replace(" ", "_")
 
     # ────────────────────────── PIPELINE ────────────────────────────────
     try:
@@ -128,136 +184,197 @@ def main():
             GH_NAME = user.get("name") or GH_LOGIN
             GH_MAIL = user.get("email") or f"{GH_LOGIN}@users.noreply.github.com"
 
-        with step("Bootstrap fichiers"):
-            if not PYPROJECT.exists():
-                # Avertissement si nom pris sur PyPI
-                if safe_get(f"https://pypi.org/pypi/{PKG_NAME}/json").status_code == 200:
-                    log("Bootstrap fichiers", f"Nom « {PKG_NAME} » déjà présent sur PyPI.")
-                PYPROJECT.write_text(
-                    toml.dumps(
-                        {
-                            "project": {
-                                "name": PKG_NAME,
-                                "version": "0.0.1",
-                                "readme": "README.md",
-                                "license": {"text": "MIT"},
-                                "authors": [{"name": GH_NAME, "email": GH_MAIL}],
-                                "requires-python": ">=3.8",
-                            },
-                            "build-system": {
-                                "requires": ["setuptools>=64", "wheel"],
-                                "build-backend": "setuptools.build_meta",
-                            },
-                        }
-                    )
+        with step("Version depuis funplayer.toml"):
+            funplayer_config = toml.load(FUNPLAYER_TOML)
+            old_version = funplayer_config["project"]["version"]
+            new_version = bump_patch(old_version)
+            
+            # Mise à jour funplayer.toml
+            funplayer_config["project"]["version"] = new_version
+            FUNPLAYER_TOML.write_text(toml.dumps(funplayer_config))
+            log("Version", f"funplayer.toml: {old_version} → {new_version}")
+
+        with step("Check versions déjà publiées"):
+            if not DRY_RUN:
+                # Check npm - lire le nom du package depuis package.json
+                funplayer_pkg = json.loads((FUNPLAYER_DIR / "package.json").read_text())
+                npm_package_name = funplayer_pkg.get("name", "funplayer-react")
+                
+                npm_check = subprocess.run(
+                    ["npm", "view", f"{npm_package_name}@{new_version}"],
+                    capture_output=True, cwd=FUNPLAYER_DIR
                 )
+                if npm_check.returncode == 0:
+                    fail("Version check", f"Version {new_version} déjà publiée sur npm")
+                
+                # Check PyPI
+                pypi_check = safe_get(f"https://pypi.org/pypi/streamlit-funplayer/{new_version}/json")
+                if pypi_check.status_code == 200:
+                    fail("Version check", f"Version {new_version} déjà publiée sur PyPI")
+                    
+                log("Check versions", f"Version {new_version} disponible sur npm et PyPI ✓")
+            else:
+                log("Check versions", "[DRY-RUN] Check versions skippé")
 
-            defaults = {
-                "README.md": f"# {PKG_NAME}\n",
-                "LICENSE": "MIT License\n",
-                "MANIFEST.in": "include README.md\ninclude LICENSE\n",
-                ".gitignore": "__pycache__/\n.env\n*.egg-info/\ndist/\nbuild/\n",
-            }
-            for file, content in defaults.items():
-                path = ROOT / file
-                if not path.exists():
-                    path.write_text(content, encoding="utf8")
+        with step("Sync versions"):
+            # Update /funplayer/package.json
+            update_json_file(
+                FUNPLAYER_DIR / "package.json", 
+                new_version, 
+                "Sync versions"
+            )
+            
+            # Update /streamlit_funplayer/streamlit_funplayer/frontend/package.json
+            update_json_file(
+                STREAMLIT_DIR / "streamlit_funplayer" / "frontend" / "package.json",
+                new_version,
+                "Sync versions"
+            )
+            
+            # Update /streamlit_funplayer/pyproject.toml
+            streamlit_pyproject = STREAMLIT_DIR / "pyproject.toml"
+            if streamlit_pyproject.exists():
+                streamlit_config = toml.load(streamlit_pyproject)
+                streamlit_config["project"]["version"] = new_version
+                streamlit_pyproject.write_text(toml.dumps(streamlit_config))
+                log("Sync versions", f"streamlit pyproject.toml → {new_version}")
 
-        with step("Nettoyage build"):
-            for d in ("build", "dist"):
-                shutil.rmtree(ROOT / d, ignore_errors=True)
-            for egg in ROOT.glob("*.egg-info"):
+        with step("Nettoyage builds"):
+            # Clean funplayer builds
+            for build_dir in ["build", "build-embed"]:
+                shutil.rmtree(FUNPLAYER_DIR / build_dir, ignore_errors=True)
+            
+            # Clean streamlit builds  
+            shutil.rmtree(STREAMLIT_DIR / "streamlit_funplayer" / "frontend" / "build", ignore_errors=True)
+            shutil.rmtree(STREAMLIT_DIR / "build", ignore_errors=True)
+            shutil.rmtree(STREAMLIT_DIR / "dist", ignore_errors=True)
+            
+            # Clean Python artifacts
+            for egg in STREAMLIT_DIR.glob("*.egg-info"):
                 shutil.rmtree(egg, ignore_errors=True)
             for p in ROOT.rglob("__pycache__"):
                 shutil.rmtree(p, ignore_errors=True)
 
-        with step("Bump version"):
-            data = toml.load(PYPROJECT)
-            old_version = data["project"]["version"]
-            new_version = bump_patch(old_version)
-            data["project"]["version"] = new_version
-            PYPROJECT.write_text(toml.dumps(data))
-            log("Bump version", f"{old_version} → {new_version}")
+        with step("Build funplayer React"):
+            # Install npm dependencies
+            run(["npm", "install"], "npm install", cwd=FUNPLAYER_DIR, quiet=True)
+            
+            # Build normal
+            run(["npm", "run", "build"], "npm build", cwd=FUNPLAYER_DIR)
+            
+            # Build embed
+            run(["npm", "run", "build:embed"], "npm build:embed", cwd=FUNPLAYER_DIR)
+            
+            log("Build funplayer React", "Builds normal + embed terminés")
 
-        with step("Frontend (si présent)"):
-            pkg_json = next(ROOT.glob("**/package.json"), None)
-            if pkg_json:
-                if shutil.which("npm") is None:
-                    raise RuntimeError("npm requis mais introuvable")
-                
-                # 🆕 Sync version dans package.json
-                pkg_data = json.loads(pkg_json.read_text())
-                pkg_data["version"] = new_version
-                pkg_json.write_text(json.dumps(pkg_data, indent=2))
-                log("Frontend", f"package.json version → {new_version}")
-                
-                # Install et builds
-                run(["npm", "install"], "npm install", cwd=pkg_json.parent, quiet=True)
-                run(["npm", "run", "build"], "npm build", cwd=pkg_json.parent)
-                
-                # 🆕 Build embed si le script existe
-                pkg_scripts = pkg_data.get("scripts", {})
-                if "build:embed" in pkg_scripts:
-                    run(["npm", "run", "build:embed"], "npm build:embed", cwd=pkg_json.parent)
-                    log("Frontend", "Build embed terminé")
+        with step("Build frontend Streamlit"):
+            streamlit_frontend = STREAMLIT_DIR / "streamlit_funplayer" / "frontend"
+            
+            # Install npm dependencies
+            run(["npm", "install"], "streamlit npm install", cwd=streamlit_frontend, quiet=True)
+            
+            # Build
+            run(["npm", "run", "build"], "streamlit npm build", cwd=streamlit_frontend)
 
-        with step("Build & install"):
-            run([sys.executable, "-m", "build"], "python -m build", quiet=True)
-            run(
-                [sys.executable, "-m", "pip", "install", "--upgrade", "-e", "."],
-                "pip install -e .",
-                quiet=True,
-            )
+        with step("Check _RELEASE flag"):
+            init_file = STREAMLIT_DIR / "streamlit_funplayer" / "streamlit_funplayer" / "__init__.py"
+            release_updated = update_init_release_flag(init_file)
+            if not release_updated:
+                log("_RELEASE flag", "_RELEASE déjà à True ou non trouvé")
 
-        with step("Git init/push"):
+        with step("Build package Python Streamlit"):
+            run([sys.executable, "-m", "build"], "python build", cwd=STREAMLIT_DIR, quiet=True)
+
+        with step("Validation builds"):
+            # Vérifier builds funplayer React
+            required_files = [
+                FUNPLAYER_DIR / "build" / "index.js",
+                FUNPLAYER_DIR / "build" / "style.css", 
+                FUNPLAYER_DIR / "build-embed" / "funplayer-embed.js"
+            ]
+            
+            for file in required_files:
+                if not file.exists():
+                    fail("Validation builds", f"Fichier manquant: {file}")
+                    
+            # Vérifier build Streamlit
+            streamlit_build = STREAMLIT_DIR / "streamlit_funplayer" / "frontend" / "build"
+            if not streamlit_build.exists() or not list(streamlit_build.glob("index.html")):
+                fail("Validation builds", "Build frontend Streamlit manquant ou vide")
+                
+            # Vérifier package Python
+            dist_files = list((STREAMLIT_DIR / "dist").glob("*.whl"))
+            if not dist_files:
+                fail("Validation builds", "Package Python (.whl) manquant")
+                
+            log("Validation builds", "Tous les builds sont présents ✓")
+
+        with step("Git push"):
             if not (ROOT / ".git").exists():
                 run(["git", "init"], "git init")
                 run(["git", "add", "."], "git add .")
                 run(["git", "commit", "-m", "Initial commit"], "git commit")
-
-            remotes = (
-                subprocess.run(["git", "remote"], capture_output=True, text=True)
-                .stdout.splitlines()
-            )
-            if "origin" not in remotes:
-                repo_url = f"https://github.com/{GH_LOGIN}/{PKG_NAME}.git"
-                resp = safe_get(repo_url, headers=HEADERS)
-                if resp.status_code == 404:
-                    create = requests.post(
-                        "https://api.github.com/user/repos",
-                        headers=HEADERS,
-                        json={"name": PKG_NAME, "private": False},
-                    )
-                    if create.status_code not in (201, 422):
-                        raise RuntimeError(f"création repo GitHub : {create.text}")
-                run(["git", "remote", "add", "origin", repo_url], "git remote add")
-                run(["git", "branch", "-M", "main"], "git branch -M main")
-                run(["git", "push", "-u", "origin", "main"], "git push -u origin main")
+                
+                # Setup remote si nécessaire
+                remotes = subprocess.run(["git", "remote"], capture_output=True, text=True).stdout.splitlines()
+                if "origin" not in remotes:
+                    repo_url = f"https://github.com/{GH_LOGIN}/funplayer.git"
+                    run(["git", "remote", "add", "origin", repo_url], "git remote add")
+                    run(["git", "branch", "-M", "main"], "git branch -M main")
+                    run(["git", "push", "-u", "origin", "main"], "git push -u origin main")
 
             run(["git", "add", "."], "git add .")
-            run(["git", "commit", "-m", f"patch update #{new_version}"], "git commit")
-            run(["git", "tag", f"v{new_version}"], "git tag v")
+            run(["git", "commit", "-m", f"Release v{new_version}"], "git commit")
+            run(["git", "tag", f"v{new_version}"], "git tag")
             run(["git", "push"], "git push")
             run(["git", "push", "--tags"], "git push tags")
 
-        with step("Upload PyPI"):
+        with step("Publish funplayer-react sur npm"):
+            # Lire le nom du package depuis package.json
+            funplayer_pkg = json.loads((FUNPLAYER_DIR / "package.json").read_text())
+            npm_package_name = funplayer_pkg.get("name", "funplayer-react")
+            
+            if DRY_RUN:
+                log("Publish npm", f"[DRY-RUN] npm publish {npm_package_name} (skipped)")
+            else:
+                run_publish(["npm", "publish"], f"npm publish {npm_package_name}", cwd=FUNPLAYER_DIR)
+
+        with step("Publish streamlit-funplayer sur PyPI"):
             if shutil.which("twine") is None:
                 raise RuntimeError("twine introuvable")
-            run(["twine", "upload", "dist/*"], "twine upload")
+            
+            if DRY_RUN:
+                log("Publish PyPI", "[DRY-RUN] twine upload (skipped)")
+            else:
+                run_publish(["twine", "upload", "dist/*"], "twine upload", cwd=STREAMLIT_DIR)
 
-        # 🆕 Trigger Vercel deployment (optionnel)
-        if VERCEL_TOKEN:
-            with step("Vercel deploy"):
-                log("Vercel deploy", "Le push GitHub triggera automatiquement Vercel")
-                log("Vercel deploy", "Si configuré, tes projets Vercel se redéploieront automatiquement")
+        with step("Install local upgrade"):
+            run(
+                [sys.executable, "-m", "pip", "install", "--upgrade", "-e", "."],
+                "pip install -e upgrade",
+                cwd=STREAMLIT_DIR,
+                quiet=True,
+            )
+
+        if DRY_RUN:
+            print("🔍 DRY-RUN terminé avec succès !")
+            print(f"Version {new_version} prête à être déployée:")
+            print("   • Tous les builds validés ✓")
+            print("   • Git pushé ✓") 
+            print("   • Publications skippées (mode dry-run)")
+            print("\nPour publier réellement: relancer sans --dry-run")
         else:
-            log("Info", "VERCEL_TOKEN non configuré - déploiement Vercel manuel")
-
-        print("🎉  Déploiement terminé sans accroc.")
-        print(f"🔗 Version {new_version} déployée :")
-        print(f"   • PyPI: https://pypi.org/project/{PKG_NAME}/")
-        print(f"   • GitHub: https://github.com/{GH_LOGIN}/{PKG_NAME}")
-        print(f"   • Vercel: projets redéployés automatiquement")
+            print("🎉  Déploiement terminé avec succès !")
+            print(f"🔗 Version {new_version} déployée :")
+            
+            # Lire le nom du package npm pour l'affichage
+            funplayer_pkg = json.loads((FUNPLAYER_DIR / "package.json").read_text())
+            npm_package_name = funplayer_pkg.get("name", "funplayer-react")
+            
+            print(f"   • npm: https://www.npmjs.com/package/{npm_package_name}")
+            print(f"   • PyPI: https://pypi.org/project/streamlit-funplayer/")
+            print(f"   • GitHub: https://github.com/{GH_LOGIN}/funplayer")
+            print(f"   • Installé localement en mode dev")
 
     except KeyboardInterrupt:
         fail("Global", "interrompu par l'utilisateur")
@@ -273,5 +390,5 @@ def main():
         )
 
 
-if __name__=="__main__":
+if __name__ == "__main__":
     main()
