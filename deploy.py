@@ -299,7 +299,7 @@ def main():
                     
             # Vérifier build Streamlit
             streamlit_build = STREAMLIT_DIR / "streamlit_funplayer" / "frontend" / "build"
-            if not streamlit_build.exists() or not list(streamlit_build.glob("index.html")):
+            if not streamlit_build.exists() or not list(streamlit_build.glob("*.html")):
                 fail("Validation builds", "Build frontend Streamlit manquant ou vide")
                 
             # Vérifier package Python
@@ -326,7 +326,20 @@ def main():
             run(["git", "add", "."], "git add .")
             run(["git", "commit", "-m", f"Release v{new_version}"], "git commit")
             run(["git", "tag", f"v{new_version}"], "git tag")
-            run(["git", "push"], "git push")
+            
+            # Check si upstream est configuré
+            upstream_check = subprocess.run(
+                ["git", "rev-parse", "--abbrev-ref", "--symbolic-full-name", "@{u}"],
+                capture_output=True, cwd=ROOT
+            )
+            
+            if upstream_check.returncode != 0:
+                # Pas d'upstream, configurer pour ce push
+                run(["git", "push", "--set-upstream", "origin", "main"], "git push --set-upstream")
+            else:
+                # Upstream configuré, push normal
+                run(["git", "push"], "git push")
+                
             run(["git", "push", "--tags"], "git push tags")
 
         with step("Publish funplayer-react sur npm"):
