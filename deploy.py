@@ -277,7 +277,7 @@ def main():
             run(["npm", "run", "build"], "streamlit npm build", cwd=streamlit_frontend)
 
         with step("Check _RELEASE flag"):
-            init_file = STREAMLIT_DIR / "streamlit_funplayer" / "streamlit_funplayer" / "__init__.py"
+            init_file = STREAMLIT_DIR / "streamlit_funplayer" / "__init__.py"
             release_updated = update_init_release_flag(init_file)
             if not release_updated:
                 log("_RELEASE flag", "_RELEASE déjà à True ou non trouvé")

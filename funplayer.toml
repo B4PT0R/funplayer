@@ -1,5 +1,5 @@
 [project]
-version = "0.1.36"
+version = "0.1.37"
 [[project.authors]]
 name = "Baptiste Ferrand"
 email = "bferrand.math@gmail.com"
